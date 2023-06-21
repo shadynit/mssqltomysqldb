@@ -1,0 +1,55 @@
+# This code will directly transform data without any transformation.
+import pymysql
+import pyodbc
+
+# Connect to the  MySQL database
+source_connection = pymysql.connect(
+    host='hostip',
+    user='username',
+    password='Password',
+    database='sourcedbname'
+)
+
+# Connect to the CIC_Customer MS SQL database
+destination_connection = pyodbc.connect(
+    'DRIVER={SQL Server};'
+        'SERVER=hostip;'
+        'DATABASE=destdbname;'
+        'UID=username;'
+        'PWD=Password;'
+)
+# Retrieve the data from the source data
+select_query = '''
+    SELECT id, column1, column2
+           
+    FROM source_table
+    WHERE date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+'''
+
+with source_connection.cursor() as source_cursor:
+    # Execute the select query
+    source_cursor.execute(select_query)
+    
+    # Fetch all the selected records
+    records = source_cursor.fetchall()
+
+# Insert the data into the destimation_table table in destdbname
+insert_query = '''
+    INSERT INTO dbo.destimation_table (dest_id, dest_column1, dest_column2,)
+    VALUES (?, ?, ?)
+'''
+
+with destination_connection.cursor() as dest_cursor:
+    # Iterate over the transformed records
+    for record in transformed_records:
+        # Execute the insert query for each record
+        dest_cursor.execute(insert_query, record)
+    
+    # Commit the changes
+    destination_connection.commit()
+
+# Close the connections
+source_connection.close()
+destination_connection.close()
+
+print ("Done")
